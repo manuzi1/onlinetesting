@@ -2,7 +2,7 @@ dataSource {
     pooled = true
     driverClassName = "org.hsqldb.jdbcDriver"
     username = "system"
-    password = "dragoran"
+    password = "test1234"
 	dialect = "org.hibernate.dialect.Oracle10gDialect"
 }
 hibernate {
@@ -19,7 +19,7 @@ environments {
 			url = "jdbc:oracle:thin:@127.0.0.1:1521:XE"
 			driverClassName = "oracle.jdbc.OracleDriver"
 			username = "system"
-			password = "dragoran"
+			password = "test1234"
 			def dialect = org.hibernate.dialect.Oracle10Dialect.class
 		}
 	}
