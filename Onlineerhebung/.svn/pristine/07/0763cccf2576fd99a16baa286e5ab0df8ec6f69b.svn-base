@@ -1,0 +1,602 @@
+/* Reset */
+* {
+	padding: 0;
+	margin: 0;
+	border: 0;
+}
+
+/* Globals */
+html {
+	background: #fff;
+	font-size: 100%;
+}
+
+body {
+	background: #fff;
+	font-size: 14px;
+	font: 11px verdana, arial, helvetica, sans-serif;	
+}
+
+a, a:hover, a:visited {
+	color: #000000 !important;
+	font-weight: normal !important;
+}
+
+/* GENERAL */
+#wrap {
+	margin: 5px auto;
+	text-align: left;
+	width: 960px;
+	position: relative;
+}
+
+#infobar {
+	height: 100%;
+	overflow: hidden;
+	clear: both;
+	background-color: #CCCCCC;
+	font-weight: bold;
+}
+
+#infobar .element {
+	display: block;
+	float: left;
+	padding: 6px 10px 10px 10px;
+}
+
+#infobar .element-first {
+	display: block;
+	float: left;
+	padding: 6px 10px 10px 10px;
+	margin: 0px 85px 0px 0px;
+	background-color: #FC0300;
+	color: #FFFFFF;
+}		
+
+#infobar .element-left {
+	display: block;
+	float: right;
+	padding: 4px 2px 4px 10px;
+	margin: 0px 0px 0px 85px;
+}
+
+#infobar .element-right {
+	display: block;
+	float: right;
+	padding: 6px 10px 10px 2px;
+}
+
+#navigation {
+	height: 100%;
+	overflow: hidden;
+}
+
+#content {
+	height: 100%;
+	overflow: hidden;
+	clear: both;
+	padding: 0px 0px 8px 0px;
+}
+
+#info {
+	height: 100%;
+	overflow: hidden;
+	clear: both;
+}
+
+h1 {
+	height: 100%;
+	overflow: hidden;
+	font-size: 18px;
+	padding: 5px;
+}
+
+h2 {
+	height: 100%;
+	overflow: hidden;
+	clear: both;
+	color: #FFFFFF;
+	background-color: #176E65;
+	margin: 5px 0px 5px 0px;
+	padding: 5px;
+	font-size: 16px;
+}
+
+.panel {
+	height: 100%;
+	overflow: hidden;
+	clear: both;
+	background-color: #CCCCCC;
+	margin: 5px 0px 10px 0px;
+	padding: 20px;
+}
+
+.float-left {
+	float: left;
+}
+
+.float-right {
+	float: right;
+}
+
+.nofloat {
+	clear: both;
+	height: 0;
+}
+
+p .nofloat {
+	height: 100%;
+	overflow: hidden;
+}
+
+.logout {
+	margin: 0px 0px 0px 30px;
+}
+
+span.fehlerhinweis {
+/*	border: 1px solid red;*/
+	margin-top: 5px !important;
+	background: url(../images/fehlerhinweis_klein.png) left top;
+}
+
+span.fehlerhinweisStub {
+	display: block;
+	width: 10px;
+	height: 18px;
+}
+
+.invisible {
+	display: block;
+	width: 0px;
+	height: 0px;
+	visibility: hidden;
+	font-size: 0px;
+}
+
+td a:link, td a:visited, td a:hover {
+    color: #333;
+    display: block;
+    font-size: 10px;
+    text-decoration: none;
+    width: 100%;
+}
+
+/* FORMS */
+
+form br {  /*Alle Zeilenumbrüche in Formularen auswählen*/
+  clear: both;  /*das floating der labels und inputs aufheben*/
+}
+
+form p { 
+	clear: both;
+	margin: 5px 20px 5px 20px;	
+}
+
+form .labelsehrkurz {
+	display: block;
+	width: 40px;
+	float: left;
+	margin: 5px 0px 5px 20px;
+	padding: 1px;
+}
+
+form .labelsehrkurzrechts {
+	display: block;
+	width: 40px;
+	float: left;
+	margin: 5px 0px 5px 58px;
+	padding: 1px;
+}
+
+form .labelkurz {
+	display: block;
+	width: 80px;
+	float: left;
+	margin: 5px 0px 5px 20px;
+	padding: 1px;
+}
+
+form .labelkurzrechts {
+	display: block;
+	width: 80px;
+	float: left;
+	margin: 5px 0px 5px 150px;
+	padding: 1px;
+}
+
+form .labelkurzrechtsabstand {
+	display: block;
+	width: 80px;
+	float: left;
+	margin: 5px 0px 5px 170px;
+	padding: 1px;
+}
+
+form .labelkurzrechtsabstandklein {
+	display: block;
+	width: 80px;
+	float: left;
+	margin: 5px 0px 5px 120px;
+	padding: 1px;
+}
+
+form .labelkurzrechtsabstandkleiner {
+	display: block;
+	width: 80px;
+	float: left;
+	margin: 5px 0px 5px 100px;
+	padding: 1px;
+}
+
+form .labelnormal {
+	display: block;
+	width: 150px;
+	float: left;
+	margin: 5px 0px 5px 20px;
+	padding: 1px;
+}
+
+form .labelnormalrechts {
+	display: block;
+	width: 150px;
+	float: left;
+	margin: 5px 0px 5px 140px;
+	padding: 1px;
+}
+
+form .labelnormalrechtsklein {
+	display: block;
+	width: 150px;
+	float: left;
+	margin: 5px 0px 5px 95px;
+	padding: 1px;
+}
+
+form .labelmittel {
+	display: block;
+	width: 180px;
+	float: left;
+	margin: 5px 0px 5px 20px;
+	padding: 1px;
+}
+
+form .labelhalblangrechtsabstandkleiner {
+	display: block;
+	width: 225px;
+	float: left;
+	margin: 5px 0px 5px 100px;
+	padding: 1px;
+}
+
+form .labellang {
+	display: block;
+	width: 270px;
+	float: left;
+	margin: 5px 0px 5px 20px;
+	padding: 1px;
+}
+
+form .labelsehrlang {
+	display: block;
+	width: 350px;
+	float: left;
+	margin: 5px 0px 5px 20px;
+	padding: 1px;
+}
+
+form .labelextralang {
+	display: block;
+	width: 400px;
+	float: left;
+	margin: 5px 0px 5px 20px;
+	padding: 1px;
+}
+
+form .labelloginbutton {
+	display: block;
+	width: 150px;
+	float: left;
+	margin: 5px 0px 5px 20px;
+	padding: 1px;
+}
+
+form .textzahl {
+	text-align: right;
+	padding: 0px 1px 0px 0px;
+	display: block;
+	width: 50px;
+	float: left;
+	margin: 5px 0px;
+	border: 1px solid #FFFFFF;
+}
+
+form .textnormal {
+	display: block;
+	width: 150px;
+	float: left;
+	margin: 5px 0px;
+	border: 1px solid #FFFFFF;
+}
+
+form .textmittel {
+	display: block;
+	width: 180px;
+	float: left;
+	margin: 5px 0px;
+	border: 1px solid #FFFFFF;
+}
+
+form .textlang {
+	display: block;
+	width: 223px;
+	float: left;
+	margin: 5px 0px;
+	border: 1px solid #FFFFFF;
+}
+
+form .textextremlang {
+	display: block;
+	width: 565px;
+	float: left;
+	margin: 5px 0px;
+	border: 1px solid #FFFFFF;
+}
+
+form input:focus, select:focus, textarea:focus {
+	border: 1px solid #000000;
+}
+
+form textarea {
+	width: 530px;
+	margin: 5px 0px;
+	border: 1px solid #FFFFFF;
+}
+
+.button {
+	font-size: 14px;
+	color:#000;
+	background-color: #E6E6E6;
+	text-decoration:none;
+	display:block;
+	padding:2px;
+	border:1px solid #DDD;
+	text-align:center;
+	cursor: default;
+}
+
+.button:hover {
+	border-color:#000000;
+}
+
+.disabled {
+	background-color: #F5F4EA;
+	border: 1px solid #AAAAAA !important;
+	color: #ACA899 !important;
+	cursor: default;
+}
+
+
+.titel_info {
+	height: 100%;
+	overflow: hidden;
+	padding: 5px 10px;
+}
+
+.titel_info span {
+	margin: 2px 0px 0px 0px;
+}
+
+.titel_info .infobild {
+	margin: 0px 5px 0px 0px;
+}
+
+.leftedge {
+	margin: 5px 5px 5px 20px !important;
+}
+
+.platz {
+	margin: 5px 30px 5px 20px !important;
+}
+
+.text {
+	margin: 5px !important;
+}
+
+.textstern {
+	margin: 8px 0px 2px 0px !important;	
+}
+
+.textprozent {
+	margin: 7px 5px 3px 5px !important;	
+}
+
+.abstandoben {
+	margin-top: 10px !important;	
+}
+
+.abstandobenmittel {
+	margin-top: 18px !important;	
+}
+
+.abstandobenklein {
+	margin-top: 8px !important;	
+}
+
+.abstand {
+	margin-left: 40px;
+	margin-right: 10px;	
+}
+
+.platzmittel {
+	margin: 2px 20px 2px 15px !important;
+}
+
+.platzklein {
+	margin: 0px 10px;
+}
+
+.checkbox {
+	margin: 0px 0px 0px 10px !important;
+}
+
+.checkboxabstand {
+	margin: 5px 0px 5px 10px !important;
+}
+
+/* MESSAGES AND ERRORS */
+
+.message {
+    background: #f3f8fc url(../images/skin/information.png) 8px 50% no-repeat;
+    border: 1px solid #b2d1ff;
+    color: #006dba;
+    margin: 10px 0 5px 0;
+    padding: 5px 5px 5px 30px
+}
+
+div.errors {
+    background: #fff3f3;
+    border: 1px solid red;
+    color: #cc0000;
+    margin: 10px 0 5px 0;
+    padding: 5px 0 5px 0;
+}
+div.errors ul {
+    list-style: none;
+    padding: 0;
+}
+div.errors li {
+	background: url(../images/skin/exclamation.png) 8px 0% no-repeat;
+    line-height: 16px;
+    padding-left: 30px;
+}
+
+td.errors select {
+    border: 1px solid red;
+}
+td.errors input {
+    border: 1px solid red;
+}
+
+/* TABLES */
+
+table {
+    border: 1px solid #ccc;
+    width: 100%
+}
+tr {
+    border: 0;
+}
+td, th {
+    font: 11px verdana, arial, helvetica, sans-serif;
+    line-height: 12px;
+    padding: 5px 6px;
+    text-align: left;
+    vertical-align: top;
+}
+th {
+    background: #CCCCCC;
+    color: #666;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 17px;
+    padding: 2px 6px;
+}
+th a:link, th a:visited, th a:hover {
+    color: #333;
+    display: block;
+    font-size: 10px;
+    text-decoration: none;
+    width: 100%;
+}
+th.asc a, th.desc a {
+    background-position: right;
+    background-repeat: no-repeat;
+}
+th.asc a {
+    background-image: url(../images/skin/sorted_asc.gif);
+}
+th.desc a {
+    background-image: url(../images/skin/sorted_desc.gif);
+}
+
+.odd {
+    background: #AAAAAA;
+}
+.even {
+    background: #EEEEEE;
+}
+
+/* LIST */
+
+.list {
+	margin: 0px 0px 5px 0px;
+	overflow: auto;
+}
+
+.list table {
+    border-collapse: collapse;
+}
+.list th, .list td {
+    border-left: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+}
+.list th:hover, .list tr:hover {
+    background: #176E65;
+}
+
+.list .button {
+	font-size: 10px;
+	color:#000;
+	background-color: #E6E6E6;
+	text-decoration:none;
+	padding:1px;
+	border:1px solid #DDD;
+	text-align:center;
+	cursor: default
+}
+
+.list .button:hover {
+	border-color:#000000;
+}
+
+/* PAGINATION */
+
+.paginateButtons {
+    background: #CCCCCC;
+    border: 1px solid #ccc;
+    border-top: 0;
+    color: #666;
+    font-size: 10px;
+    overflow: hidden;
+    padding: 10px 3px;
+}
+
+.paginateButtons a {
+    margin: 0 3px;
+    padding: 2px 6px;
+	color:#000;
+	background-color: #E6E6E6;
+	text-decoration:none;
+	border:1px solid #DDD;
+	text-align:center;
+}
+
+.paginateButtons a:hover {
+	border-color:#000000;
+}
+
+.paginateButtons span {
+    padding: 2px 3px;
+}
+
+.block {
+	display: block;
+}
+
+.bold {
+	font-weight: bold !important;
+}
+
+.abstand-links-kurz {
+	margin-left: 50px;
+}

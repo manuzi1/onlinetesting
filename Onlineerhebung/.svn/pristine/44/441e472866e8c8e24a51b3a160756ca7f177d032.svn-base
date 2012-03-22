@@ -1,0 +1,301 @@
+package at.emikat.gemerh.ooe
+
+import at.emikat.gemerh.ooe.Arbeitsstaette;
+
+class ArbeitsstaetteController {
+	
+	def grailsApplication
+	def ueberpruefungService
+	
+	def defaultAction = 'list'
+	
+	def propertiesToBindNeu = ['name', 'adr_plz', 'adr_ort', 'adr_strasse', 'adr_nr', 'taetigkeit']
+	
+	def hilfe = { }
+	
+	def hilfelist = { }
+	
+	def index() {
+		redirect(action: 'list', params: params)
+	}
+	
+	def list = {
+		def gemeindeInstance = Gemeinde.get(session.gemid)
+		params.max = Math.min(params.max ? params.int('max') : 10, 100)
+		
+		if (!params.sort) {
+			params.sort = 'arbid'
+		}
+		
+		if (!params.order) {
+			params.order = 'asc'
+		}
+		
+		def arbList = Arbeitsstaette.findAllByGemeinde(gemeindeInstance, params)
+		def arb = ueberpruefungService.arbNeu(arbList)
+		
+		if(!session.ueberpruefung && arb) { 
+			arb = true
+		}
+		
+		[arbeitsstaetteInstanceList: arbList, arbeitsstaetteInstanceTotal: Arbeitsstaette.countByGemeinde(gemeindeInstance), arb: arb]
+	}
+	
+	def edit = {
+		def arbeitsstaetteInstance = Arbeitsstaette.get(params.id)
+		
+		if (arbeitsstaetteInstance?.gemeinde.id != session.gemid) { //Verwehrt Zugriff auf Arbeitsstätten anderer Gemeinden
+			flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'arbeitsstaette.label', default: 'Arbeitstaette'), params.id])}"
+			redirect(action: "list")
+		} else {
+			if(session.ueberpruefung && arbeitsstaetteInstance?.status == "NEU") { ueberpruefungService.arbNeues(arbeitsstaetteInstance) }
+			else if(session.ueberpruefung && arbeitsstaetteInstance?.status != "NEU") { ueberpruefungService.arbBestand(arbeitsstaetteInstance) }
+			return [arbeitsstaetteInstance: arbeitsstaetteInstance]
+		}
+	}
+	
+	def korrektur = {
+		def arbeitsstaetteInstance = Arbeitsstaette.get(params.id)
+		
+		if (arbeitsstaetteInstance?.gemeinde.id != session.gemid) { //Verwehrt Zugriff auf Arbeitsstätten anderer Gemeinden
+			flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'arbeitsstaette.label', default: 'Arbeitstaette'), params.id])}"
+			redirect(action: "list")
+		} else {
+			if(session.ueberpruefung && arbeitsstaetteInstance?.status == "NEU") { ueberpruefungService.arbNeues(arbeitsstaetteInstance) }
+			else if(session.ueberpruefung && arbeitsstaetteInstance?.status != "NEU") { ueberpruefungService.arbBestand(arbeitsstaetteInstance) }
+			return [arbeitsstaetteInstance: arbeitsstaetteInstance]
+		}
+	}
+	
+	def create = {
+		if (session.editierbar) {
+			def arbeitsstaetteInstance = new Arbeitsstaette()
+			arbeitsstaetteInstance.status = "NEU"
+			return [arbeitsstaetteInstance: arbeitsstaetteInstance]
+		} else {
+			flash.message = "${message(code: 'at.emikat.gemerh.ooe.erstellen.fehlgeschlagen', default: 'Erstellen fehlgeschlagen!')}"
+			redirect(action: "list")
+		}
+	}
+	
+	def save = {
+		if (session.editierbar) {
+			def gemeindeInstance = Gemeinde.get(session.gemid)
+			def arbeitsstaetteInstance = new Arbeitsstaette()
+			
+			arbeitsstaetteInstance.status = "NEU"
+			arbeitsstaetteInstance.gemeinde = gemeindeInstance
+			arbeitsstaetteInstance.szm_version_ref = session.svr
+			arbeitsstaetteInstance.created_by = grailsApplication.config.emikat.user_ref
+			arbeitsstaetteInstance.last_modified_by = grailsApplication.config.emikat.user_ref
+			
+			arbeitsstaetteInstance.properties[propertiesToBindNeu] = params
+			
+			// Zuweisung der Arbeitsstaetten-ID für neue Arbeitsstaette
+			def arbeitsstaette = Arbeitsstaette.findAllByArbidIsNotNull([sort: 'arbid', order:'desc', max: 1])
+			
+			if (arbeitsstaette.size == 1) {
+				def highestNumber = arbeitsstaette.get(0).arbid
+				arbeitsstaetteInstance.arbid = ++highestNumber
+			} else {
+				arbeitsstaetteInstance.arbid = 1
+			}
+			
+			if (!arbeitsstaetteInstance.hasErrors() && arbeitsstaetteInstance.save(flush: true)) {
+				flash.message = "${message(code: 'default.created.message', args: [message(code: 'arbeitsstaette.label', default: 'Arbeitsstätte'), arbeitsstaetteInstance.name])}"
+				redirect(action: "list")
+			} else {
+				render(view: "create", model: [arbeitsstaetteInstance: arbeitsstaetteInstance])
+			}
+		} else {
+			flash.message = "${message(code: 'at.emikat.gemerh.ooe.erstellen.fehlgeschlagen', default: 'Erstellen fehlgeschlagen!')}"
+			redirect(action: "list")
+		}
+	}
+	
+	def delete = {	
+		def arbeitsstaetteInstance = Arbeitsstaette.get(params.id)
+		
+		if (arbeitsstaetteInstance?.gemeinde.id == session.gemid) { //Verwehrt Zugriff auf Arbeitsstätten anderer Gemeinden
+			if (session.editierbar && arbeitsstaetteInstance?.status == "NEU") {
+				try {
+					arbeitsstaetteInstance.delete(flush: true)
+					flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'arbeitsstaette.label', default: 'Arbeitsstätte'), arbeitsstaetteInstance.name])}"
+					redirect(action: "list")
+				}
+				catch (org.springframework.dao.DataIntegrityViolationException e) {
+					flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'arbeitstaette.label', default: 'Arbeitsstätte'), arbeitsstaetteInstance.name])}"
+					redirect(action: "list")
+				}
+			}
+		} else {
+			flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'arbeitstaette.label', default: 'Arbeitsstätte'), params.id])}"
+			redirect(action: "list")
+		}
+	}
+	
+	private update = {from, toController, toAction, params ->
+		def arbeitsstaetteInstance = Arbeitsstaette.get(params.id)
+		
+		if (arbeitsstaetteInstance?.gemeinde.id == session.gemid) { //Verwehrt Zugriff auf Arbeitsstätten anderer Gemeinden
+			if (session.editierbar) {
+				if (params.version) {
+					def version = params.version.toLong()
+					if (arbeitsstaetteInstance.version > version) {
+						
+						arbeitsstaetteInstance.errors.rejectValue("version", "default.optimistic.locking.failure")
+						render(view: from, model: [arbeitsstaetteInstance: arbeitsstaetteInstance])
+						return
+					}
+				}
+				
+				arbeitsstaetteInstance.last_modified_by = grailsApplication.config.emikat.user_ref
+				
+				if (arbeitsstaetteInstance.status == "NEU") {
+					arbeitsstaetteInstance.properties[propertiesToBindNeu] = params
+				} else {
+					if (arbeitsstaetteInstance.status == "UNVERÄNDERT" && toAction == "checked") {
+						arbeitsstaetteInstance.status = "GEPRÜFT"
+					} else {
+						arbeitsstaetteInstance.properties['stilllegung_jahr', 'name_neu'] = params
+						
+						if (arbeitsstaetteInstance.stilllegung_jahr && arbeitsstaetteInstance.name_neu) {
+							arbeitsstaetteInstance.status = "FEHLER"
+						} else if (arbeitsstaetteInstance.stilllegung_jahr) {
+							arbeitsstaetteInstance.status = "GESCHLOSSEN"
+						} else if (arbeitsstaetteInstance.name_neu) {
+							arbeitsstaetteInstance.status = "NAMENSÄNDERUNG"
+						} else  if (arbeitsstaetteInstance.status == "GEPRÜFT") {
+							arbeitsstaetteInstance.status = "GEPRÜFT"
+						} else { arbeitsstaetteInstance.status = "UNVERÄNDERT" }
+					}
+				}
+				
+				if (!arbeitsstaetteInstance.hasErrors() && arbeitsstaetteInstance.save(flush: true)) {
+					flash.message = "${message(code: 'default.updated.message')}"
+					
+					if (toController == "arbeitsstaette" && (toAction == "next" || toAction == "previous")) { //Anzeigen der Arbeitsstätte davor oder danach
+						browseArbeitsstaette(arbeitsstaetteInstance, toAction)
+					}  else if (toController == "arbeitsstaette" && toAction == "speichern") {
+						redirect(action: edit, id: arbeitsstaetteInstance.id)
+					}  else if (toController == "arbeitsstaette" && toAction == "korrekturSpeichern") {
+						redirect(action: 'korrektur', id: arbeitsstaetteInstance.id)
+					}  else if (toController == "arbeitsstaette" && toAction == "checked") {
+						redirect(action: 'list')
+					} else {
+						redirect(controller: toController, action: toAction)
+					}
+				} else {
+					render(view: from, model: [arbeitsstaetteInstance: arbeitsstaetteInstance])
+				}
+			} else if (toController == "arbeitsstaette" && (toAction == "next" || toAction == "previous")) { //Anzeigen der Arbeitsstätte davor oder danach
+				browseArbeitsstaette(arbeitsstaetteInstance, toAction)
+			}  else if (toController == "arbeitsstaette" && toAction == "speichern") {
+				redirect(action: edit, id: arbeitsstaetteInstance.id)
+			}  else if (toController == "arbeitsstaette" && toAction == "korrekturSpeichern") {
+				redirect(action: 'korrektur', id: arbeitsstaetteInstance.id)
+			}  else if (toController == "arbeitsstaette" && toAction == "checked") {
+				redirect(action: 'list')
+			} else {
+				redirect(controller: toController, action: toAction)
+			}
+		} else {
+			flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'arbeitsstaette.label', default: 'Arbeitsstätte'), params.id])}"
+			redirect(action: "list")
+		}	
+	}
+	
+	private browseArbeitsstaette = { arbeitsstaetteInstance, direction ->
+		def params
+		
+		if (direction == "next") {
+			params = ['sort': 'arbid', 'order': 'asc']
+		} else if (direction == "previous") { //Sortierung umkehren für vorherige Arbeitsstaette
+			params = ['sort': 'arbid', 'order': 'desc']
+		}
+		
+		ArrayList<Arbeitsstaette> arbeitsstaetteList = Arbeitsstaette.findAllByGemeinde(Gemeinde.get(session.gemid), params)
+		def arbIndex = arbeitsstaetteList.indexOf(arbeitsstaetteInstance)
+		
+		if (arbIndex != -1 && ++arbIndex < arbeitsstaetteList.size()) {
+			Arbeitsstaette nextArbeitsstaette = arbeitsstaetteList.get(arbIndex)
+			redirect(action: "edit", id: nextArbeitsstaette.id)
+		} else {
+			redirect(action: "list")
+		}
+	}
+	
+	def speichern = {
+		update('edit', 'arbeitsstaette', 'speichern', params)
+	}
+	
+	def uebersicht = {
+		update('edit', 'arbeitsstaette', 'list', params)
+	}
+	
+	def zurueck = {
+		update('edit', 'arbeitsstaette', 'previous', params)
+	}
+	
+	def weiter = {
+		update('edit', 'arbeitsstaette', 'next', params)
+	}
+	
+	def listUebersicht = {
+		redirect(controller: 'gemeinde', action: 'list')
+	}
+	
+	def editUebersicht = {
+		update('edit', 'gemeinde', 'list', params)
+	}
+	
+	def createUebersicht = {
+		redirect(controller: 'gemeinde', action: 'list')
+	}
+	
+	def korrekturUebersicht = {
+		update('create', 'gemeinde', 'list', params)
+	}
+	
+	def listLogout = {
+		redirect(controller: "user", action: "logout")
+	}
+	
+	def editLogout = {
+		update('edit', 'user', 'logout', params)
+	}
+	
+	def createLogout = {
+		redirect(controller: "user", action: "logout")
+	}
+	
+	def korrekturLogout = {
+		update('korrektur', 'user', 'logout', params)
+	}
+	
+	def ListZurueck = {
+		redirect(controller: "gemeinde", action: "erfassung2")
+	}
+	
+	def korrekturSpeichern = {
+		update('korrektur', 'arbeitsstaette', 'korrekturSpeichern', params)
+	}
+	
+	def korrekturAbgabe = {
+		update('korrektur', 'gemeinde', 'abgabe', params)
+	}
+	
+	def listAbgabe = {
+		redirect(controller: "gemeinde", action: "abgabe")
+	}
+	
+	def checked = {
+		def gemeindeInstance = Gemeinde.get(session.gemid)
+		ArrayList arbList = Arbeitsstaette.findAllByGemeindeAndStatus(gemeindeInstance, "UNVERÄNDERT")
+		for (arb in arbList) {
+			arb.status = "GEPRÜFT"
+			arb.save(flush: true)
+		}
+		redirect(controller: "arbeitsstaette", action: "list")
+	}
+}

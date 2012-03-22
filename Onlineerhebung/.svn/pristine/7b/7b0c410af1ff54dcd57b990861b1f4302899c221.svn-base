@@ -1,0 +1,255 @@
+package at.emikat.gemerh.ooe
+
+import at.emikat.gemerh.ooe.Gebaeude;
+
+class GebaeudeController {
+	
+	def grailsApplication
+	def gebaeudeService
+	def ueberpruefungService
+	
+	def defaultAction = 'list'
+	
+	def propertiesToBind = ['adr_plz', 'adr_ort', 'adr_strasse', 'adr_nr', 'anz_schueler', 'heizmaterial_menge', 'heizmaterial_kosten']
+	
+	def hilfe = { }
+	
+	def hilfelist = { }
+	
+	def list = {
+		def gemeindeInstance = Gemeinde.get(session.gemid)
+		params.max = Math.min(params.max ? params.int('max') : 10, 100)
+		
+		if (!params.sort) {
+			params.sort = 'nr'
+		}
+		
+		if (!params.order) {
+			params.order = 'asc'
+		}
+		
+		[gebaeudeInstanceList: Gebaeude.findAllByGemeinde(gemeindeInstance, params), gebaeudeInstanceTotal: gebaeudeService.countByGemeinde(gemeindeInstance)]
+	}
+	
+	def edit = {
+		def gebaeudeInstance = Gebaeude.get(params.id)
+		
+		if (gebaeudeInstance?.gemeinde.id != session.gemid) { //Verwehrt Zugriff auf Gebäude anderer Gemeinden
+			flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'gebaeude.label', default: 'Gebäude'), params.id])}"
+			redirect(action: "list")
+		}
+		else {
+			if(session.ueberpruefung) { ueberpruefungService.geb(gebaeudeInstance) }
+			return [gebaeudeInstance: gebaeudeInstance]
+		}
+	}
+	
+	def korrektur = {
+		def gebaeudeInstance = Gebaeude.get(params.id)
+		if (gebaeudeInstance?.gemeinde.id != session.gemid) { //Verwehrt Zugriff auf Gebäude anderer Gemeinden
+			flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'gebaeude.label', default: 'Gebäude'), params.id])}"
+			redirect(action: "list")
+		}
+		else {
+			if(session.ueberpruefung) { ueberpruefungService.geb(gebaeudeInstance) }
+			return [gebaeudeInstance: gebaeudeInstance]
+		}
+	}
+	
+	def create = {
+		if (session.editierbar) {
+			def gebaeudeInstance = new Gebaeude()
+			return [gebaeudeInstance: gebaeudeInstance]
+		} else {
+			flash.message = "${message(code: 'at.emikat.gemerh.ooe.erstellen.fehlgeschlagen', default: 'Erstellen fehlgeschlagen!')}"
+			redirect(action: "list")
+		}
+	}
+	
+	def save = {
+		if (session.editierbar) {
+			def gemeindeInstance = Gemeinde.get(session.gemid)
+			def gebaeudeInstance = new Gebaeude()
+			
+			gebaeudeInstance.properties[propertiesToBind] = params
+			gebaeudeInstance.gemeinde = gemeindeInstance
+			gebaeudeInstance.gebaeudeart = ueberpruefungService.ueberpruefeAuswahl(params.gebaeudeart)
+			gebaeudeInstance.heizmaterial = ueberpruefungService.ueberpruefeAuswahl(params.heizmaterial)
+			gebaeudeInstance.heizmaterial_einheit = ueberpruefungService.ueberpruefeAuswahl(params.heizmaterial_einheit)
+			gebaeudeInstance.szm_version_ref = session.svr
+			gebaeudeInstance.created_by = grailsApplication.config.emikat.user_ref
+			gebaeudeInstance.last_modified_by = grailsApplication.config.emikat.user_ref
+			
+			// Nummernzuweisung für neues Gebäude
+			def highestNumber = Gebaeude.findByGemeinde(gemeindeInstance, [sort: 'nr', order:'desc', max: 1])?.nr
+			if (highestNumber) {
+				gebaeudeInstance.nr = ++highestNumber
+			} else {
+				gebaeudeInstance.nr = 1
+			}
+			
+			if (!gebaeudeInstance.hasErrors() && gebaeudeInstance.save(flush: true)) {
+				flash.message = "${message(code: 'default.created.message', args: [message(code: 'gebaeude.label', default: 'Gebaeude'), gebaeudeInstance.nr])}"
+				redirect(action: "list")
+			}
+			else {
+				render(view: "create", model: [gebaeudeInstance: gebaeudeInstance])
+			}
+		}  else {
+			flash.message = "${message(code: 'at.emikat.gemerh.ooe.erstellen.fehlgeschlagen', default: 'Erstellen fehlgeschlagen!')}"
+			redirect(action: "list")
+		}
+	}
+	
+	def delete = {
+		def gebaeudeInstance = Gebaeude.get(params.id)
+		
+		if (gebaeudeInstance?.gemeinde.id == session.gemid) { //Verwehrt Zugriff auf Gebäude anderer Gemeinden
+			if (session.editierbar) {
+				try {
+					gebaeudeInstance.delete(flush: true)
+					flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'gebaeude.label', default: 'Gebaeude'), gebaeudeInstance.nr])}"
+					redirect(action: "list")
+				}
+				catch (org.springframework.dao.DataIntegrityViolationException e) {
+					flash.message = "${message(code: 'default.not.deleted.message', args: [message(code: 'gebaeude.label', default: 'Gebaeude'), gebaeudeInstance.nr])}"
+					redirect(action: "list")
+				}
+			} 
+		} else {
+			flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'gebaeude.label', default: 'Gebaeude'), params.id])}"
+			redirect(action: "list")
+		}
+	}
+	
+	private update = {from, toController, toAction, params ->
+		def gebaeudeInstance = Gebaeude.get(params.id)
+		
+		if (gebaeudeInstance?.gemeinde.id == session.gemid) { //Verwehrt Zugriff auf Gebäude anderer Gemeinden
+			if (session.editierbar) {
+				if (params.version) {
+					def version = params.version.toLong()
+					if (gebaeudeInstance.version > version) {
+						
+						gebaeudeInstance.errors.rejectValue("version", "default.optimistic.locking.failure")
+						render(view: from, model: [gebaeudeInstance: gebaeudeInstance])
+						return
+					}
+				}
+				
+				gebaeudeInstance.properties[propertiesToBind] = params
+				gebaeudeInstance.gebaeudeart = ueberpruefungService.ueberpruefeAuswahl(params.gebaeudeart)
+				gebaeudeInstance.heizmaterial = ueberpruefungService.ueberpruefeAuswahl(params.heizmaterial)
+				gebaeudeInstance.heizmaterial_einheit = ueberpruefungService.ueberpruefeAuswahl(params.heizmaterial_einheit)
+				gebaeudeInstance.last_modified_by = grailsApplication.config.emikat.user_ref
+				
+				if (!gebaeudeInstance.hasErrors() && gebaeudeInstance.save(flush: true)) {
+					flash.message = "${message(code: 'default.updated.message')}"
+					
+					if (toController == "gebaeude" && (toAction == "next" || toAction == "previous")) { //Anzeigen des Gebäudes davor oder danach
+						browseGebaeude(gebaeudeInstance, toAction)
+					}  else if (toController == "gebaeude" && toAction == "speichern") {
+						redirect(action: edit, id: gebaeudeInstance.id)
+					}  else if (toController == "gebaeude" && toAction == "korrekturSpeichern") {
+						redirect(action: 'korrektur', id: gebaeudeInstance.id)
+					} else {
+						redirect(controller: toController, action: toAction)
+					}
+				} else {
+					render(view: from, model: [gebaeudeInstance: gebaeudeInstance])
+				}
+			} else if (toController == "gebaeude" && (toAction == "next" || toAction == "previous")) { //Anzeigen des Gebäudes davor oder danach
+				browseGebaeude(gebaeudeInstance, toAction)
+			}  else if (toController == "gebaeude" && toAction == "speichern") {
+				redirect(action: edit, id: gebaeudeInstance.id)
+			}  else if (toController == "gebaeude" && toAction == "korrekturSpeichern") {
+				redirect(action: 'korrektur', id: gebaeudeInstance.id)
+			} else {
+				redirect(controller: toController, action: toAction)
+			}
+		} else {
+			flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'arbeitstaette.label', default: 'Arbeitsstätte'), params.id])}"
+			redirect(action: "list")
+		}
+	}
+	
+	private browseGebaeude = { gebaeudeInstance, direction ->
+		def params
+		
+		if (direction == "next") {
+			params = ['sort': 'nr', 'order': 'asc']
+		} else if (direction == "previous") { //Sortierung umkehren für vorheriges Gebäude
+			params = ['sort': 'nr', 'order': 'desc']
+		}
+		
+		ArrayList<Gebaeude> gebaeudeList = Gebaeude.findAllByGemeinde(Gemeinde.get(session.gemid), params)
+		def gebIndex = gebaeudeList.indexOf(gebaeudeInstance)
+		
+		if (gebIndex != -1 && ++gebIndex < gebaeudeList.size()) {
+			Gebaeude nextGebaeude = gebaeudeList.get(gebIndex)
+			redirect(action: "edit", id: nextGebaeude.id)
+		} else {
+			redirect(action: "list")
+		}
+	}
+	
+	def speichern = {
+		update('edit', 'gebaeude', 'speichern', params)
+	}
+	
+	def uebersicht = {
+		update('edit', 'gebaeude', 'list', params)
+	}
+	
+	def zurueck = {
+		update('edit', 'gebaeude', 'previous', params)
+	}
+	
+	def weiter = {
+		update('edit', 'gebaeude', 'next', params)
+	}
+	
+	def listUebersicht = {
+		redirect(controller: "gemeinde", action: "list")
+	}
+	
+	def editUebersicht = {
+		update('edit', 'gemeinde', 'list', params)
+	}
+	
+	def createUebersicht = {
+		redirect(controller: "gemeinde", action: "list")
+	}
+	
+	def korrekturUebersicht = {
+		update('create', 'gemeinde', 'list', params)
+	}
+	
+	def listLogout = {
+		redirect(controller: "user", action: "logout")
+	}
+	
+	def editLogout = {
+		update('edit', 'user', 'logout', params)
+	}
+	
+	def createLogout = {
+		redirect(controller: "user", action: "logout")
+	}
+	
+	def korrekturLogout = {
+		update('korrektur', 'user', 'logout', params)
+	}
+	
+	def ListZurueck = {
+		redirect(controller: "gemeinde", action: "erfassung1")
+	}
+	
+	def korrekturSpeichern = {
+		update('korrektur', 'gebaeude', 'korrekturSpeichern', params)
+	}
+	
+	def korrekturAbgabe = {
+		update('korrektur', 'gemeinde', 'abgabe', params)
+	}
+}
